@@ -1,0 +1,123 @@
+{
+  "originHash" : "c8613cc74df02eecbf64351ecaae43504a7b146656c9ff2ed0834686bda4a5c0",
+  "pins" : [
+    {
+      "identity" : "alamofire",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Alamofire/Alamofire.git",
+      "state" : {
+        "revision" : "513364f870f6bfc468f9d2ff0a95caccc10044c5",
+        "version" : "5.10.2"
+      }
+    },
+    {
+      "identity" : "anycodable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Flight-School/AnyCodable.git",
+      "state" : {
+        "revision" : "862808b2070cd908cb04f9aafe7de83d35f81b05",
+        "version" : "0.6.7"
+      }
+    },
+    {
+      "identity" : "base58swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mathwallet/Base58Swift.git",
+      "state" : {
+        "revision" : "04ccae070ac6f3117db11af864a04229f7c1e025",
+        "version" : "0.0.1"
+      }
+    },
+    {
+      "identity" : "bigint",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/attaswift/BigInt.git",
+      "state" : {
+        "revision" : "e07e00fa1fd435143a2dcf8b7eec9a7710b2fdfe",
+        "version" : "5.7.0"
+      }
+    },
+    {
+      "identity" : "bip39swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mathwallet/BIP39swift",
+      "state" : {
+        "revision" : "722786f0d4503461657fd9c36a6ef9c85eba33ea",
+        "version" : "2.0.1"
+      }
+    },
+    {
+      "identity" : "cryptoswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
+      "state" : {
+        "revision" : "e45a26384239e028ec87fbcc788f513b67e10d8f",
+        "version" : "1.9.0"
+      }
+    },
+    {
+      "identity" : "promisekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mxcl/PromiseKit.git",
+      "state" : {
+        "revision" : "2bc44395edb4f8391902a9ff7c220471882a4d07",
+        "version" : "8.2.0"
+      }
+    },
+    {
+      "identity" : "ripemdswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mathwallet/RIPEMDSwift.git",
+      "state" : {
+        "revision" : "1a9b1487d1880585c8cc46e26b6d9838184f7858",
+        "version" : "0.0.1"
+      }
+    },
+    {
+      "identity" : "secp256k1swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mathwallet/Secp256k1Swift.git",
+      "state" : {
+        "revision" : "c958eaf1e485c00344031717384ef3d0504d67ba",
+        "version" : "2.0.1"
+      }
+    },
+    {
+      "identity" : "solanaswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mathwallet/SolanaSwift",
+      "state" : {
+        "branch" : "main",
+        "revision" : "30648e4ae0d72847f7f578e26b31295643739763"
+      }
+    },
+    {
+      "identity" : "starscream",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/daltoniam/Starscream.git",
+      "state" : {
+        "revision" : "c6bfd1af48efcc9a9ad203665db12375ba6b145a",
+        "version" : "4.0.8"
+      }
+    },
+    {
+      "identity" : "tweetnacl-swiftwrap",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lishuailibertine/tweetnacl-swiftwrap",
+      "state" : {
+        "revision" : "80afe3695c4613517c2b5d04b5d3ae41bda33647",
+        "version" : "1.0.5"
+      }
+    },
+    {
+      "identity" : "web3swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mathwallet/web3swift",
+      "state" : {
+        "revision" : "ec4529a9eb3d7e8c70fb3b7159feb1e3bcb00431",
+        "version" : "3.5.3"
+      }
+    }
+  ],
+  "version" : 3
+}
