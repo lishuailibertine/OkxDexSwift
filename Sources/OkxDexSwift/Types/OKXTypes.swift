@@ -114,7 +114,7 @@ public struct TokenData: Codable {
 }
 
 public struct ChainData: Codable {
-    public let chainIndex: String
+    public let chainIndex: Int
     public let chainName: String
     public let dexTokenApproveAddress: String?
 }
@@ -148,7 +148,7 @@ public struct APIResponseSingle<T: Codable>: Codable {
 
 // MARK: - Configuration
 
-public struct ChainConfig {
+public struct ChainConfig: Codable {
     public let id: String
     public let explorer: String
     public let defaultSlippage: String
@@ -172,6 +172,21 @@ public struct ChainConfig {
 
 public typealias NetworkConfigs = [String: ChainConfig]
 
+public struct SolanaConfig {
+    
+}
+
+public struct EVMConfig {
+    public let wallet: EVMWallet?
+    public init(wallet: EVMWallet?) {
+        self.wallet = wallet
+    }
+}
+
+public struct SuiConfig {
+    
+}
+
 public struct OKXConfig {
     public let apiKey: String
     public let secretKey: String
@@ -181,6 +196,10 @@ public struct OKXConfig {
     public let timeout: TimeInterval?
     public let maxRetries: Int?
     public var networks: NetworkConfigs?
+    public var solana: SolanaConfig?
+    public var evm: EVMConfig?
+    public var sui: SuiConfig?
+    
     public init(apiKey: String, secretKey: String, apiPassphrase: String, projectId: String, baseUrl: String = "https://web3.okx.com", networks: NetworkConfigs? = nil, timeout: TimeInterval? = nil, maxRetries: Int? = nil) {
         self.apiKey = apiKey
         self.secretKey = secretKey

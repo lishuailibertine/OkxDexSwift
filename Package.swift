@@ -25,7 +25,9 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "OkxDexSwift",
-            dependencies: ["web3swift", "SolanaSwift", "CryptoSwift"]),
+            dependencies: ["web3swift", "SolanaSwift", "CryptoSwift"],
+            resources: [.process("Resources")]
+        ),
         .testTarget(
             name: "OkxDexSwiftTests",
             dependencies: ["OkxDexSwift"]
