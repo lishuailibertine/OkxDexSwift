@@ -1,7 +1,7 @@
 import Foundation
 import web3swift
 import BigInt
-
+import CryptoSwift
 /// EVM swap executor using web3swift
 public class EVMSwapExecutor: SwapExecutor {
     private let config: OKXConfig
@@ -27,7 +27,7 @@ public class EVMSwapExecutor: SwapExecutor {
         }
         
         do {
-            let txHash = try await executeEVMTransaction(tx: tx)
+            let txHash = try await executeEVMTransaction(tx: tx, type: params.type)
             return formatSwapResult(txHash: txHash, routerResult: routerResult)
         } catch {
             print("Swap execution failed: \(error)")
@@ -35,17 +35,51 @@ public class EVMSwapExecutor: SwapExecutor {
         }
     }
     
-    private func executeEVMTransaction(tx: TransactionData) async throws -> String {
-        // This is a placeholder implementation
-        // In a real implementation, you would:
-        // 1. Create a web3swift transaction from tx data
-        // 2. Sign it with the wallet
-        // 3. Send it to the network
-        // 4. Wait for confirmation
-        // 5. Return the transaction hash
+    private func executeEVMTransaction(tx: TransactionData, type: SwapTransactionType = .EIP1559) async throws -> String {
+        let gasMultiplier = BigUInt(500) // 5x for safety
+        guard let wallet = self.config.evm?.wallet as? PrivateKeyWallet else {
+            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "EVM wallet not configured"])
+        }
+        guard let gasLimit = BigUInt(tx.gas ?? "0") else {
+            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid gas limit"])
+        }
+        guard let value = BigUInt(tx.value ?? "0") else {
+            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid value"])
+        }
+    
+        guard let toAddress = EthereumAddress(tx.to) else {
+            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid to address"])
+        }
+        guard let chainId = BigUInt(self.networkConfig.id) else {
+            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid chain ID"])
+        }
         
-        // For now, return a placeholder
-        throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "EVM transaction execution not fully implemented - requires web3swift wallet integration"])
+        let gas = gasLimit * gasMultiplier / BigUInt(100)
+        var transaction = EthereumTransaction(type: type == .EIP1559 ? .EIP1559 : .Legacy, to: toAddress, value: value, data: Data(hex: tx.data))
+        transaction.gasLimit = gas
+        transaction.UNSAFE_setChainID(chainId)
+        switch type {
+        case .EIP1559:
+            let maxPriorityFeePerGas = try wallet.web3.eth.maxPriorityFeePerGas()
+            let feeHistory = try wallet.web3.eth.getFeeHistory(blockCount: 20)
+            var baseFeePerGas = BigUInt(0)
+            for bF in feeHistory.baseFeePerGas {
+                if bF > baseFeePerGas {
+                    baseFeePerGas = bF
+                }
+            }
+            transaction.maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas
+            transaction.maxPriorityFeePerGas = maxPriorityFeePerGas
+        case .Legacy:
+            transaction.gasPrice = try wallet.web3.eth.getGasPrice()
+        }
+        
+        let nonce = try wallet.web3.eth.getTransactionCount(address: EthereumAddress(wallet.address)!, onBlock: "latest")
+        transaction.nonce = nonce
+        try await wallet.signTransaction(&transaction)
+        let result = try await wallet.sendTransaction(transaction)
+        print("EVM Transaction sent with hash: \(result.hash)")
+        return result.hash
     }
     
     private func formatSwapResult(txHash: String, routerResult: RouterResult) -> SwapResult {

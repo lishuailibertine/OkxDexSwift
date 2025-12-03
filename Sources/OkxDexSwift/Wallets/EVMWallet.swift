@@ -46,6 +46,6 @@ public class PrivateKeyWallet: EVMWallet {
     }
     
     public func sendTransaction(_ transaction: EthereumTransaction) async throws -> TransactionSendingResult {
-        return try web3.eth.sendTransaction(transaction, transactionOptions: .defaultOptions)
+        return try web3.eth.sendRawTransaction(transaction)
     }
 }
