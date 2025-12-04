@@ -43,27 +43,29 @@ public class EVMApproveExecutor {
     
     public func handleTokenApproval(chainIndex: String, tokenAddress: String, amount: String) async throws -> String{
         let dexContractAddress = try await getDexContractAddress(chainIndex: chainIndex, tokenAddress: tokenAddress, amount: amount)
-        let currentAllowance = try await getAllowance(tokenAddress: tokenAddress, ownerAddress: (self.config.evm?.wallet as? PrivateKeyWallet)?.address ?? "", spenderAddress: "0xd9c500dff816a1da21a48a732d3498bf09dc9aeb")
+        let currentAllowance = try await getAllowance(tokenAddress: tokenAddress, ownerAddress: (self.config.evm?.wallet as? PrivateKeyWallet)?.address ?? "", spenderAddress: dexContractAddress)
         if currentAllowance >= BigUInt(amount, radix: 10)! {
             throw NSError(domain: "EVMApproveExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "No approval needed, current allowance is sufficient."])
         }
         // Execute approval transaction (placeholder)
-        
-        
-        throw NSError(domain: "EVMApproveExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "EVM approval execution not fully implemented - requires web3swift wallet integration"])
+        let hash = try await self.executeApprovalTransaction(tokenAddress: tokenAddress, spenderAddress: dexContractAddress, amount: amount)
+        return hash
     }
     
     private func getAllowance(tokenAddress: String,
                              ownerAddress: String,
                              spenderAddress: String) async throws -> BigUInt {
-        guard let evmWallet = self.config.evm?.wallet as? PrivateKeyWallet else {
+        guard let _tokenAddress = EthereumAddress(tokenAddress),
+              let _spenderAddress = EthereumAddress(spenderAddress),
+              let _ownerAddress = EthereumAddress(ownerAddress),
+              let evmWallet = self.config.evm?.wallet as? PrivateKeyWallet else {
             throw Web3Error.dataError
         }
-        let web3contract = evmWallet.web3.contract(self.erc20ABI, at: EthereumAddress(tokenAddress)!)!
+        let web3contract = evmWallet.web3.contract(self.erc20ABI, at: _tokenAddress)!
         // 调用 allowance 方法
         let result = try web3contract.read(
             "allowance",
-            parameters: [EthereumAddress(ownerAddress)!, EthereumAddress(spenderAddress)!] as [AnyObject]
+            parameters: [_ownerAddress, _spenderAddress] as [AnyObject]
         )?.callPromise().wait()
         
         // 将结果转换为 BigUInt
@@ -74,10 +76,43 @@ public class EVMApproveExecutor {
         return allowance
     }
 
-//    private func executeApprovalTransaction(tokenAddress: String, spenderAddress: String, amount: String) async throws -> String {
-//        
-//        
-//    }
+    private func executeApprovalTransaction(tokenAddress: String, spenderAddress: String, amount: String, type: EVMTransactionType = .Legacy) async throws -> String {
+        guard let _tokenAddress = EthereumAddress(tokenAddress),
+              let _spenderAddress = EthereumAddress(spenderAddress),
+              let wallet = self.config.evm?.wallet as? PrivateKeyWallet else {
+            throw Web3Error.dataError
+        }
+        guard let chainId = BigUInt(self.networkConfig.id) else {
+            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid chain ID"])
+        }
+        let contract = EthereumContract(self.erc20ABI, at: _tokenAddress)
+        guard let approveData = contract?.method("approve", parameters: [_spenderAddress, BigUInt(amount, radix: 10)!] as [AnyObject])!.data else {
+            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid approve"])
+        }
+        var transaction = EthereumTransaction(type: .Legacy, to: _tokenAddress, value: BigUInt(0), data: approveData)
+        transaction.gasLimit = BigUInt(100000)
+        transaction.UNSAFE_setChainID(chainId)
+        switch type {
+        case .EIP1559:
+            let maxPriorityFeePerGas = try wallet.web3.eth.maxPriorityFeePerGas()
+            let feeHistory = try wallet.web3.eth.getFeeHistory(blockCount: 20)
+            var baseFeePerGas = BigUInt(0)
+            for bF in feeHistory.baseFeePerGas {
+                if bF > baseFeePerGas {
+                    baseFeePerGas = bF
+                }
+            }
+            transaction.maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas
+            transaction.maxPriorityFeePerGas = maxPriorityFeePerGas
+        case .Legacy:
+            transaction.gasPrice = try wallet.web3.eth.getGasPrice()
+        }
+        let nonce = try wallet.web3.eth.getTransactionCount(address: EthereumAddress(wallet.address)!, onBlock: "latest")
+        transaction.nonce = nonce
+        try await wallet.signTransaction(&transaction)
+        let result = try await wallet.sendTransaction(transaction)
+        return result.hash
+    }
     
     private func getDexContractAddress(chainIndex: String, tokenAddress: String, amount: String) async throws -> String {
         do {

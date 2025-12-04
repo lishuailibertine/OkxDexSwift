@@ -225,7 +225,7 @@ public struct BaseParams: Codable {
     public let feePercent: String?
 }
 
-public enum SwapTransactionType: UInt8, Codable {
+public enum EVMTransactionType: UInt8, Codable {
     case Legacy = 0x00
     case EIP1559 = 0x02
 }
@@ -252,7 +252,7 @@ public struct SwapParams: Codable {
     public let directRoute: Bool?
     public let priceImpactProtectionPercent: String?
     public let feePercent: String?
-    public let type: SwapTransactionType
+    public let type: EVMTransactionType
     public init(chainIndex: String? = nil, fromTokenAddress: String, toTokenAddress: String, amount: String, userWalletAddress: String? = nil, slippagePercent: String? = nil, autoSlippage: Bool? = nil, maxAutoSlippagePercent: String? = nil, swapReceiverAddress: String? = nil, fromTokenReferrerWalletAddress: String? = nil, toTokenReferrerWalletAddress: String? = nil, positiveSlippagePercent: String? = nil, gasLimit: String? = nil, gasLevel: String? = nil, computeUnitPrice: String? = nil, computeUnitLimit: String? = nil, callDataMemo: String? = nil, dexIds: String? = nil, directRoute: Bool? = nil, priceImpactProtectionPercent: String? = nil, feePercent: String? = nil, type: SwapTransactionType = .EIP1559) {
         self.chainIndex = chainIndex
         self.fromTokenAddress = fromTokenAddress

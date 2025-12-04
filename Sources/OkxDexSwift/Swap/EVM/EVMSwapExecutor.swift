@@ -35,7 +35,7 @@ public class EVMSwapExecutor: SwapExecutor {
         }
     }
     
-    private func executeEVMTransaction(tx: TransactionData, type: SwapTransactionType = .EIP1559) async throws -> String {
+    private func executeEVMTransaction(tx: TransactionData, type: EVMTransactionType = .EIP1559) async throws -> String {
         let gasMultiplier = BigUInt(500) // 5x for safety
         guard let wallet = self.config.evm?.wallet as? PrivateKeyWallet else {
             throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "EVM wallet not configured"])
