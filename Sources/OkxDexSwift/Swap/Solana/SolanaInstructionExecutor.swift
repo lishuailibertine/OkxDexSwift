@@ -12,17 +12,25 @@ public class SolanaInstructionExecutor {
     }
     
     public func executeInstructions(instrData: SolanaSwapInstructionData) async throws -> SwapResult {
-        // This is a placeholder implementation
-        // In a real implementation, you would:
-        // 1. Get latest blockhash
-        // 2. Fetch address lookup tables
-        // 3. Build instructions from instrData.instructionLists
-        // 4. Assemble versioned transaction
-        // 5. Sign and send
-        // 6. Confirm transaction
-        // 7. Return formatted result
-        
-        throw NSError(domain: "SolanaInstructionExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Solana instruction execution not fully implemented - requires SolanaSwift integration"])
+        guard let solanaWallet = self.config.solana?.wallet as? SolanaPrivateKeyWallet else {
+            throw NSError(domain: "SolanaInstructionExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invaild Wallet"])
+        }
+        var lookupTables = [AddressLookupTableAccount]()
+        let recentBlockhash = try await solanaWallet.rpcProvider.getLatestBlockhash(opts: [.commitment(.confirmed)]).blockhash
+        for accountPublicKeyStr in instrData.addressLookupTableAccount {
+            let tablekey = SolanaPublicKey(base58String: accountPublicKeyStr)!
+            let result = try await solanaWallet.rpcProvider.getAccountInfo(account: tablekey, opts: [.encoding(.base64)])
+            if let values = result?.data.value as? [String] {
+                lookupTables.append(try AddressLookupTableAccount.parse(base64Data: values[0], lookupTableKey: tablekey))
+            }
+        }
+        let _instructionLists = try instrData.toMessageInstructions()
+        var v_message = try SolanaMessage_V0(_instructionLists, feePayer: SolanaPublicKey(base58String: solanaWallet.address)!, addressLookupTableAccounts: lookupTables)
+        v_message.recentBlockhash = SolanaBlockHash(base58String: recentBlockhash)!
+        let vTransaction = try solanaWallet.signTransaction(SolanaVersionedTransaction(message: v_message))
+        let result = try await solanaWallet.sendTransaction(try vTransaction.serializeAndBase58())
+        let router = instrData.routerResult;
+        return self.formatSwapResult(signature: result, routerResult: router)
     }
     
     private func formatSwapResult(signature: String, routerResult: RouterResult) -> SwapResult {

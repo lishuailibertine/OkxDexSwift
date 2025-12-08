@@ -78,7 +78,6 @@ public class EVMSwapExecutor: SwapExecutor {
         transaction.nonce = nonce
         try await wallet.signTransaction(&transaction)
         let result = try await wallet.sendTransaction(transaction)
-        print("EVM Transaction sent with hash: \(result.hash)")
         return result.hash
     }
     

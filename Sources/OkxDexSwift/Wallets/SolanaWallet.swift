@@ -1,36 +1,43 @@
-//import Foundation
-//import SolanaSwift
-//
-//public protocol SolanaWallet: Wallet {
-//    func signTransaction(_ transaction: Transaction) async throws -> Transaction
-//    func signMessage(_ message: Data) async throws -> Data
-//}
-//
-//public class SolanaPrivateKeyWallet: SolanaWallet {
-//    public let address: String
-//    private let account: Account
-//    private let solana: Solana
-//    
-//    public init(privateKey: String, endpoint: String) async throws {
-//        // Initialize Solana instance
-//        let apiEndpoint = APIEndPoint(address: endpoint, network: .mainnetBeta)
-//        self.solana = Solana(router: NetworkingRouter(endpoint: apiEndpoint))
-//        
-//        // Initialize account
-//        // Assuming privateKey is base58 string or hex
-//        // SolanaSwift usually takes [UInt8] or base58 string
-//        self.account = try await Account(secretKey: Data(base64Encoded: privateKey)!, ignorePublicKey: false) // Placeholder initialization
-//        self.address = account.publicKey.base58EncodedString
-//    }
-//    
-//    public func signTransaction(_ transaction: Transaction) async throws -> Transaction {
-//        var tx = transaction
-//        try await tx.sign(signers: [account])
-//        return tx
-//    }
-//    
-//    public func signMessage(_ message: Data) async throws -> Data {
-//        // SolanaSwift signing logic
-//        return try await account.sign(data: message)
-//    }
-//}
+import Foundation
+import SolanaSwift
+import Base58Swift
+
+public protocol SolanaWallet: Wallet {
+    func signTransaction(_ transaction: SolanaVersionedTransaction) throws -> SolanaSignedVersionedTransaction
+    func signMessage(_ message: Data) throws -> Data
+    func sendTransaction(_ base58: String) async throws -> String
+}
+
+public class SolanaPrivateKeyWallet: SolanaWallet {
+    public let address: String
+    private let secretKey: Data
+    public let rpcProvider: SolanaRPCProvider
+    public init(privateKey: String, endpoint: String) throws {
+        // Initialize Solana instance
+        let sercet = privateKey.base58DecodedData
+        guard sercet.count == 64 else {
+            throw APIError.unknown(NSError(domain: "InvalidPrivateKey", code: 0))
+        }
+        self.secretKey = privateKey.base58DecodedData
+        let keypair = try SolanaKeyPair(secretKey: secretKey)
+        self.address = keypair.publicKey.address
+        guard let url = URL(string: endpoint) else {
+            throw APIError.invalidURL
+        }
+        self.rpcProvider = SolanaRPCProvider(url: url)
+        
+    }
+    
+    public func signTransaction(_ transaction: SolanaVersionedTransaction) throws -> SolanaSignedVersionedTransaction {
+        var tx = transaction
+        return try tx.sign(keypair: SolanaKeyPair(secretKey: self.secretKey))
+    }
+    
+    public func signMessage(_ message: Data) throws -> Data {
+        return SolanaSignature(data: try SolanaKeyPair(secretKey: self.secretKey).signDigest(messageDigest: message)).data
+    }
+    
+    public func sendTransaction(_ base58: String) async throws -> String {
+        return try await self.rpcProvider.sendTransaction(encodedString: base58)
+    }
+}

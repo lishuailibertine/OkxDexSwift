@@ -44,7 +44,7 @@ public class EVMApproveExecutor {
     public func handleTokenApproval(chainIndex: String, tokenAddress: String, amount: String) async throws -> String{
         let dexContractAddress = try await getDexContractAddress(chainIndex: chainIndex, tokenAddress: tokenAddress, amount: amount)
         let currentAllowance = try await getAllowance(tokenAddress: tokenAddress, ownerAddress: (self.config.evm?.wallet as? PrivateKeyWallet)?.address ?? "", spenderAddress: dexContractAddress)
-        if currentAllowance >= BigUInt(amount, radix: 10)! {
+        if currentAllowance >= BigUInt(amount)! {
             throw NSError(domain: "EVMApproveExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "No approval needed, current allowance is sufficient."])
         }
         // Execute approval transaction (placeholder)
@@ -86,7 +86,7 @@ public class EVMApproveExecutor {
             throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid chain ID"])
         }
         let contract = EthereumContract(self.erc20ABI, at: _tokenAddress)
-        guard let approveData = contract?.method("approve", parameters: [_spenderAddress, BigUInt(amount, radix: 10)!] as [AnyObject])!.data else {
+        guard let approveData = contract?.method("approve", parameters: [_spenderAddress, BigUInt(amount)!] as [AnyObject])!.data else {
             throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid approve"])
         }
         var transaction = EthereumTransaction(type: .Legacy, to: _tokenAddress, value: BigUInt(0), data: approveData)

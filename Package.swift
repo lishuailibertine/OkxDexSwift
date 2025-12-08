@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/mathwallet/web3swift", .exact("3.5.3")),
-        .package(url: "https://github.com/mathwallet/SolanaSwift", branch: "main"),
+        .package(url: "https://github.com/mathwallet/SolanaSwift", .exact("5.1.5")),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.0.0"))
     ],
     targets: [

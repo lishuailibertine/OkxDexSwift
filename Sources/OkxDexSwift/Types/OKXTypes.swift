@@ -172,7 +172,7 @@ public struct ChainConfig: Codable {
 public typealias NetworkConfigs = [String: ChainConfig]
 
 public struct SolanaConfig {
-    
+    public let wallet: SolanaWallet?
 }
 
 public struct EVMConfig {
@@ -253,7 +253,7 @@ public struct SwapParams: Codable {
     public let priceImpactProtectionPercent: String?
     public let feePercent: String?
     public let type: EVMTransactionType
-    public init(chainIndex: String? = nil, fromTokenAddress: String, toTokenAddress: String, amount: String, userWalletAddress: String? = nil, slippagePercent: String? = nil, autoSlippage: Bool? = nil, maxAutoSlippagePercent: String? = nil, swapReceiverAddress: String? = nil, fromTokenReferrerWalletAddress: String? = nil, toTokenReferrerWalletAddress: String? = nil, positiveSlippagePercent: String? = nil, gasLimit: String? = nil, gasLevel: String? = nil, computeUnitPrice: String? = nil, computeUnitLimit: String? = nil, callDataMemo: String? = nil, dexIds: String? = nil, directRoute: Bool? = nil, priceImpactProtectionPercent: String? = nil, feePercent: String? = nil, type: SwapTransactionType = .EIP1559) {
+    public init(chainIndex: String? = nil, fromTokenAddress: String, toTokenAddress: String, amount: String, userWalletAddress: String? = nil, slippagePercent: String? = nil, autoSlippage: Bool? = nil, maxAutoSlippagePercent: String? = nil, swapReceiverAddress: String? = nil, fromTokenReferrerWalletAddress: String? = nil, toTokenReferrerWalletAddress: String? = nil, positiveSlippagePercent: String? = nil, gasLimit: String? = nil, gasLevel: String? = nil, computeUnitPrice: String? = nil, computeUnitLimit: String? = nil, callDataMemo: String? = nil, dexIds: String? = nil, directRoute: Bool? = nil, priceImpactProtectionPercent: String? = nil, feePercent: String? = nil, type: EVMTransactionType = .EIP1559) {
         self.chainIndex = chainIndex
         self.fromTokenAddress = fromTokenAddress
         self.toTokenAddress = toTokenAddress
@@ -287,8 +287,10 @@ public struct QuoteParams: Codable {
     public let slippagePercent: String
     public let userWalletAddress: String?
     public let dexIds: String?
-    
-    public init(chainIndex: String? = nil, fromTokenAddress: String, toTokenAddress: String, amount: String, slippagePercent: String, userWalletAddress: String? = nil, dexIds: String? = nil) {
+    public let directRoute: Bool?
+    public let priceImpactProtectionPercent: String?
+    public let feePercent: String?
+    public init(chainIndex: String? = nil, fromTokenAddress: String, toTokenAddress: String, amount: String, slippagePercent: String, userWalletAddress: String? = nil, dexIds: String? = nil, directRoute: Bool? = false, priceImpactProtectionPercent: String? = nil, feePercent: String? = nil) {
         self.chainIndex = chainIndex
         self.fromTokenAddress = fromTokenAddress
         self.toTokenAddress = toTokenAddress
@@ -296,6 +298,9 @@ public struct QuoteParams: Codable {
         self.slippagePercent = slippagePercent
         self.userWalletAddress = userWalletAddress
         self.dexIds = dexIds
+        self.directRoute = directRoute
+        self.priceImpactProtectionPercent = priceImpactProtectionPercent
+        self.feePercent = feePercent
     }
 }
 

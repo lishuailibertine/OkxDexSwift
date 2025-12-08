@@ -1,5 +1,5 @@
 {
-  "originHash" : "c8613cc74df02eecbf64351ecaae43504a7b146656c9ff2ed0834686bda4a5c0",
+  "originHash" : "c750d644d56cc4e029c46905a11a400c833537b2e89cab3b54a842bfa0503946",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -87,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mathwallet/SolanaSwift",
       "state" : {
-        "branch" : "main",
-        "revision" : "30648e4ae0d72847f7f578e26b31295643739763"
+        "revision" : "30648e4ae0d72847f7f578e26b31295643739763",
+        "version" : "5.1.5"
       }
     },
     {

@@ -1,6 +1,6 @@
 import Foundation
 import SolanaSwift
-
+import Base58Swift
 /// Solana swap executor using SolanaSwift
 public class SolanaSwapExecutor: SwapExecutor {
     private let config: OKXConfig
@@ -39,16 +39,18 @@ public class SolanaSwapExecutor: SwapExecutor {
     }
     
     private func executeSolanaTransaction(txData: String) async throws -> String {
-        // This is a placeholder implementation
-        // In a real implementation, you would:
-        // 1. Decode the base58 transaction data
-        // 2. Prepare the transaction with latest blockhash
-        // 3. Sign it with the Solana wallet
-        // 4. Send it to the network
-        // 5. Confirm the transaction
-        // 6. Return the signature
-        
-        throw NSError(domain: "SolanaSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Solana transaction execution not fully implemented - requires SolanaSwift wallet integration"])
+        guard let solanaWallet = self.config.solana?.wallet as? SolanaPrivateKeyWallet else {
+            throw NSError(domain: "SolanaSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invaild Wallet"])
+        }
+        let recentBlockhash = try await solanaWallet.rpcProvider.getLatestBlockhash(opts: [.commitment(.finalized)]).blockhash
+        let dataBytes = Base58.bytesFromBase58(txData)
+        let data = Data(bytes:dataBytes, count: dataBytes.count)
+        let versionedTransaction = try BorshDecoder.decode(SolanaSignedVersionedTransaction.self, from: data).transaction
+        var messagevo = versionedTransaction.message as! SolanaMessageV0
+        messagevo.recentBlockhash = SolanaBlockHash(base58String: recentBlockhash)!
+        let vTransaction = try solanaWallet.signTransaction(SolanaVersionedTransaction(message: messagevo))
+        let result = try await solanaWallet.sendTransaction(try vTransaction.serializeAndBase58())
+        return result
     }
     
     private func formatSwapResult(signature: String, routerResult: RouterResult) -> SwapResult {
