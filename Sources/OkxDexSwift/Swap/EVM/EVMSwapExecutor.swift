@@ -15,22 +15,21 @@ public class EVMSwapExecutor: SwapExecutor {
     
     public func executeSwap(swapData: SwapResponseData, params: SwapParams) async throws -> SwapResult {
         guard let quoteData = swapData.data?.first else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid swap data: missing data"])
+            throw EVMSwapError.missingData
         }
         
         guard let routerResult = quoteData.routerResult else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid swap data: missing router result"])
+            throw EVMSwapError.missingRouterResult
         }
         
         guard let tx = quoteData.tx else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing transaction data"])
+            throw EVMSwapError.missingTransactionData
         }
         
         do {
             let txHash = try await executeEVMTransaction(tx: tx, type: params.type)
             return formatSwapResult(txHash: txHash, routerResult: routerResult)
         } catch {
-            print("Swap execution failed: \(error)")
             throw error
         }
     }
@@ -38,20 +37,20 @@ public class EVMSwapExecutor: SwapExecutor {
     private func executeEVMTransaction(tx: TransactionData, type: EVMTransactionType = .EIP1559) async throws -> String {
         let gasMultiplier = BigUInt(500) // 5x for safety
         guard let wallet = self.config.evm?.wallet as? PrivateKeyWallet else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "EVM wallet not configured"])
+            throw EVMSwapError.invalidWallet
         }
         guard let gasLimit = BigUInt(tx.gas ?? "0") else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid gas limit"])
+            throw EVMSwapError.invalidGasLimit
         }
         guard let value = BigUInt(tx.value ?? "0") else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid value"])
+            throw EVMSwapError.invalidValue
         }
     
         guard let toAddress = EthereumAddress(tx.to) else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid to address"])
+            throw EVMSwapError.invalidAddress
         }
         guard let chainId = BigUInt(self.networkConfig.id) else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid chain ID"])
+            throw EVMSwapError.invalidChainId
         }
         
         let gas = gasLimit * gasMultiplier / BigUInt(100)

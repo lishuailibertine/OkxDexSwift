@@ -45,7 +45,7 @@ public class EVMApproveExecutor {
         let dexContractAddress = try await getDexContractAddress(chainIndex: chainIndex, tokenAddress: tokenAddress, amount: amount)
         let currentAllowance = try await getAllowance(tokenAddress: tokenAddress, ownerAddress: (self.config.evm?.wallet as? PrivateKeyWallet)?.address ?? "", spenderAddress: dexContractAddress)
         if currentAllowance >= BigUInt(amount)! {
-            throw NSError(domain: "EVMApproveExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "No approval needed, current allowance is sufficient."])
+            throw EVMSwapError.invalidApproval(reason: "No approval needed, current allowance is sufficient.")
         }
         // Execute approval transaction (placeholder)
         let hash = try await self.executeApprovalTransaction(tokenAddress: tokenAddress, spenderAddress: dexContractAddress, amount: amount)
@@ -83,11 +83,11 @@ public class EVMApproveExecutor {
             throw Web3Error.dataError
         }
         guard let chainId = BigUInt(self.networkConfig.id) else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid chain ID"])
+            throw EVMSwapError.invalidChainId
         }
         let contract = EthereumContract(self.erc20ABI, at: _tokenAddress)
         guard let approveData = contract?.method("approve", parameters: [_spenderAddress, BigUInt(amount)!] as [AnyObject])!.data else {
-            throw NSError(domain: "EVMSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid approve"])
+            throw EVMSwapError.invalidApproval(reason: "Failed to create approval data")
         }
         var transaction = EthereumTransaction(type: .Legacy, to: _tokenAddress, value: BigUInt(0), data: approveData)
         transaction.gasLimit = BigUInt(100000)
@@ -126,7 +126,7 @@ public class EVMApproveExecutor {
                 ]
             )
             guard let dexContractAddress = response.data?.first?.dexContractAddress else {
-                throw NSError(domain: "EVMApproveExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "No dex contract address found for chain \(chainIndex)"])
+                throw EVMSwapError.invalidApproval(reason: "Failed to get DEX contract address")
             }
             return dexContractAddress
         } catch {

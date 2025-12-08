@@ -13,7 +13,7 @@ public class SolanaInstructionExecutor {
     
     public func executeInstructions(instrData: SolanaSwapInstructionData) async throws -> SwapResult {
         guard let solanaWallet = self.config.solana?.wallet as? SolanaPrivateKeyWallet else {
-            throw NSError(domain: "SolanaInstructionExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invaild Wallet"])
+            throw SolanaSwapError.invalidWallet
         }
         var lookupTables = [AddressLookupTableAccount]()
         let recentBlockhash = try await solanaWallet.rpcProvider.getLatestBlockhash(opts: [.commitment(.confirmed)]).blockhash

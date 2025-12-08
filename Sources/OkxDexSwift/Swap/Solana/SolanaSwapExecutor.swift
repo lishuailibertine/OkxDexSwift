@@ -13,20 +13,20 @@ public class SolanaSwapExecutor: SwapExecutor {
     
     public func executeSwap(swapData: SwapResponseData, params: SwapParams) async throws -> SwapResult {
         guard let quoteData = swapData.data?.first else {
-            throw NSError(domain: "SolanaSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid swap data: missing data"])
+            throw SolanaSwapError.missingData
         }
         
         guard let routerResult = quoteData.routerResult else {
-            throw NSError(domain: "SolanaSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid swap data: missing router result"])
+            throw SolanaSwapError.missingRouterResult
         }
         
         // Validate token information
         guard !routerResult.fromToken.decimal.isEmpty, !routerResult.toToken.decimal.isEmpty else {
-            throw NSError(domain: "SolanaSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing decimal information for tokens"])
+            throw SolanaSwapError.missingDecimalInfo
         }
         
         guard let txData = quoteData.tx?.data else {
-            throw NSError(domain: "SolanaSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing transaction data"])
+            throw SolanaSwapError.missingTransactionData
         }
         
         do {
@@ -40,7 +40,7 @@ public class SolanaSwapExecutor: SwapExecutor {
     
     private func executeSolanaTransaction(txData: String) async throws -> String {
         guard let solanaWallet = self.config.solana?.wallet as? SolanaPrivateKeyWallet else {
-            throw NSError(domain: "SolanaSwapExecutor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invaild Wallet"])
+            throw SolanaSwapError.invalidWallet
         }
         let recentBlockhash = try await solanaWallet.rpcProvider.getLatestBlockhash(opts: [.commitment(.finalized)]).blockhash
         let dataBytes = Base58.bytesFromBase58(txData)

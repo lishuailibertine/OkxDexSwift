@@ -1,5 +1,14 @@
 import Foundation
-
+protocol DexSwapError: Error, LocalizedError {
+    var domain: String { get }
+    var code: Int { get }
+    var message: String { get }
+}
+extension DexSwapError {
+    var errorDescription: String? {
+        return message
+    }
+}
 /// Protocol defining the interface for swap executors
 public protocol SwapExecutor {
     /// Execute a swap transaction
