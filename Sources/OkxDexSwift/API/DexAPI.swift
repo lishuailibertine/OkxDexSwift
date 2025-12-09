@@ -1,5 +1,73 @@
 import Foundation
 import web3swift
+// DexAPIError.swift
+enum DexAPIError: Error, LocalizedError {
+    // 参数验证错误
+    case missingSlippage
+    case invalidSlippage(value: String)
+    case missingMaxAutoSlippage
+    case missingChainIndex
+    
+    // 数据错误
+    case emptyInstructionData
+    case networkConfigNotFound(chainIndex: String)
+    
+    var domain: String {
+        return "com.okx.dex.api"
+    }
+    var code: Int {
+        switch self {
+        case .missingSlippage: return 4001
+        case .invalidSlippage: return 4002
+        case .missingMaxAutoSlippage: return 4003
+        case .missingChainIndex: return 4004
+        case .emptyInstructionData: return 4005
+        case .networkConfigNotFound: return 4006
+        }
+    }
+    
+    var errorDescription: String? {
+        switch self {
+        case .missingSlippage:
+            return "Either slippagePercent or autoSlippage must be provided"
+        case .invalidSlippage(let value):
+            return "Slippage must be between 0 and 1, got: \(value)"
+        case .missingMaxAutoSlippage:
+            return "maxAutoSlippagePercent must be provided when autoSlippage is enabled"
+        case .missingChainIndex:
+            return "chainIndex is required"
+        case .emptyInstructionData:
+            return "Empty instruction data from API"
+        case .networkConfigNotFound(let chainIndex):
+            return "Network configuration not found for chain \(chainIndex)"
+        }
+    }
+}
+
+// 在 DexAPI 类中添加
+private extension DexAPI {
+    /// 验证滑点参数
+    func validateSlippageParams(_ params: SwapParams) throws {
+        // 检查是否提供了滑点参数
+        guard params.slippagePercent != nil || params.autoSlippage == true else {
+            throw DexAPIError.missingSlippage
+        }
+        
+        // 验证滑点值范围
+        if let slippagePercent = params.slippagePercent {
+            guard let slippageValue = Double(slippagePercent),
+                  slippageValue >= 0,
+                  slippageValue <= 1 else {
+                throw DexAPIError.invalidSlippage(value: slippagePercent)
+            }
+        }
+        
+        // 检查自动滑点的最大值
+        if params.autoSlippage == true && params.maxAutoSlippagePercent == nil {
+            throw DexAPIError.missingMaxAutoSlippage
+        }
+    }
+}
 
 public class DexAPI {
     private let client: HTTPClient
@@ -27,20 +95,7 @@ public class DexAPI {
     
     public func getSwapData(params: SwapParams) async throws -> SwapResponseData {
         // Validate slippage parameters
-        if params.slippagePercent == nil && params.autoSlippage != true {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "Either slippagePercent or autoSlippage must be provided"])
-        }
-        
-        if let slippagePercent = params.slippagePercent {
-            guard let slippageValue = Double(slippagePercent), slippageValue >= 0, slippageValue <= 1 else {
-                throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "Slippage must be between 0 and 1"])
-            }
-        }
-        
-        if params.autoSlippage == true && params.maxAutoSlippagePercent == nil {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "maxAutoSlippagePercent must be provided when autoSlippage is enabled"])
-        }
-        
+        try validateSlippageParams(params)
         let paramsDict = try params.toDictionary()
         return try await client.request(method: "GET", path: "/api/v6/dex/aggregator/swap", params: paramsDict)
     }
@@ -50,20 +105,7 @@ public class DexAPI {
     }
     
     public func getSolanaSwapInstruction(params: SwapParams) async throws -> APIResponseSingle<SolanaSwapInstructionData> {
-        if params.slippagePercent == nil && params.autoSlippage != true {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "Either slippagePercent or autoSlippage must be provided"])
-        }
-        
-        if let slippagePercent = params.slippagePercent {
-            guard let slippageValue = Double(slippagePercent), slippageValue >= 0, slippageValue <= 1 else {
-                throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "Slippage must be between 0 and 1"])
-            }
-        }
-        
-        if params.autoSlippage == true && params.maxAutoSlippagePercent == nil {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "maxAutoSlippagePercent must be provided when autoSlippage is enabled"])
-        }
-        
+        try validateSlippageParams(params)
         let paramsDict = try params.toDictionary()
         return try await client.request(method: "GET", path: "/api/v6/dex/aggregator/swap-instruction", params: paramsDict)
     }
@@ -72,7 +114,7 @@ public class DexAPI {
     
     public func executeSwap(params: SwapParams) async throws -> SwapResult {
         guard let chainIndex = params.chainIndex else {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "chainIndex is required"])
+            throw DexAPIError.missingChainIndex
         }
         
         let swapData = try await getSwapData(params: params)
@@ -84,12 +126,12 @@ public class DexAPI {
     
     public func executeSolanaSwapInstructions(params: SwapParams) async throws -> SwapResult {
         guard let chainIndex = params.chainIndex else {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "chainIndex is required"])
+            throw DexAPIError.missingChainIndex
         }
         
         let instructionResp = try await getSolanaSwapInstruction(params: params)
         guard let instructionData = instructionResp.data else {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "Empty instruction data from API"])
+            throw DexAPIError.emptyInstructionData
         }
         
         let networkConfig = try getNetworkConfig(chainIndex: chainIndex)
@@ -99,13 +141,6 @@ public class DexAPI {
     
     public func executeApproval(params: ApproveTokenParams) async throws -> (transactionHash: String, explorerUrl: String) {
         let networkConfig = try getNetworkConfig(chainIndex: params.chainIndex)
-        
-        // Get the DEX approval address from supported chains
-        let chainsData = try await getChainData(chainIndex: params.chainIndex)
-        guard let dexTokenApproveAddress = chainsData.data?.first?.dexTokenApproveAddress else {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "No dex contract address found for chain \(params.chainIndex)"])
-        }
-        
         // Create the approve executor
         let executor = try SwapExecutorFactory.createApproveExecutor(chainIndex: params.chainIndex, config: config, networkConfig: networkConfig)
         
@@ -128,7 +163,7 @@ public class DexAPI {
     
     private func getNetworkConfig(chainIndex: String) throws -> ChainConfig {
         guard let networkConfig = config.networks?[chainIndex] else {
-            throw NSError(domain: "DexAPI", code: 1, userInfo: [NSLocalizedDescriptionKey: "Network configuration not found for chain \(chainIndex)"])
+            throw DexAPIError.networkConfigNotFound(chainIndex: chainIndex)
         }
         return networkConfig
     }
