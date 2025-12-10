@@ -16,6 +16,7 @@ let package = Package(
             targets: ["OkxDexSwift"]),
     ],
     dependencies: [
+        .package(url: "https://github.com/apple/swift-collections.git", from: "1.2.0"),
         .package(url: "https://github.com/mathwallet/web3swift", .exact("3.5.3")),
         .package(url: "https://github.com/mathwallet/SolanaSwift", .exact("5.1.5")),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.0.0"))
@@ -25,7 +26,7 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "OkxDexSwift",
-            dependencies: ["web3swift", "SolanaSwift", "CryptoSwift"],
+            dependencies: ["web3swift", "SolanaSwift", "CryptoSwift", .product(name: "OrderedCollections", package: "swift-collections")],
             resources: [.process("Resources")]
         ),
         .testTarget(

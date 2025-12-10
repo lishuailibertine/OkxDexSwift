@@ -165,7 +165,6 @@ public struct SolanaMessage_V0: SolanaMessage {
         self.compiledInstructions = compiledInstructions
         self.addressTableLookups = addressTableLookups
         self.recentBlockhash = recentBlockhash
-        print("Static Account Keys: \(staticAccountKeys)")
     }
     
     // MARK: - Serialization
