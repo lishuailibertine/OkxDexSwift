@@ -17,8 +17,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.2.0"),
-        .package(url: "https://github.com/mathwallet/web3swift", .exact("3.5.3")),
-        .package(url: "https://github.com/mathwallet/SolanaSwift", .exact("5.1.5")),
+        .package(url: "https://github.com/mathwallet/web3swift", from: "3.5.3"),
+        .package(url: "https://github.com/mathwallet/SolanaSwift", from: "5.1.5"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.0.0"))
     ],
     targets: [
