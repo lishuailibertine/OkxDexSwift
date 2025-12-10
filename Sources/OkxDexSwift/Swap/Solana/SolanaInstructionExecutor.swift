@@ -26,18 +26,6 @@ public class SolanaInstructionExecutor {
         }
         let _instructionLists = try instrData.toMessageInstructions()
         let v_message = try SolanaMessage_V0(_instructionLists, feePayer: SolanaPublicKey(base58String: solanaWallet.address)!, addressLookupTableAccounts: lookupTables, recentBlockhash: SolanaBlockHash(base58String: recentBlockhash)!)
-        var serialized = Data()
-        try v_message.serialize(to: &serialized)
-
-        print("\n=== Swift Serialization ===")
-        print("Total size: \(serialized.count)")
-        print("First 200 bytes:")
-        print(serialized.map { String(format: "%02x", $0) }.joined())
-        print("Message version: \(v_message.version)")
-        print("Static accounts: \(v_message.staticAccountKeys.count)")
-        print("Lookup tables: \(v_message.addressTableLookups?.count ?? 0)")
-        print("Instructions: \(v_message.compiledInstructions.count)")
-        print("=================================\n")
         let vTransaction = try solanaWallet.signTransaction(SolanaVersionedTransaction(message: v_message))
         let result = try await solanaWallet.sendTransaction(try vTransaction.serializeAndBase58())
         let router = instrData.routerResult;
