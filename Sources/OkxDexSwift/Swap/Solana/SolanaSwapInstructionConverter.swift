@@ -19,7 +19,7 @@ public struct RawInstructionData: BorshCodable {
     }
     
     public func serialize(to writer: inout Data) throws {
-        try bytes.serialize(to: &writer)
+        writer.append(self.bytes, count: self.bytes.count)
     }
     
     public init(from reader: inout BinaryReader) throws {

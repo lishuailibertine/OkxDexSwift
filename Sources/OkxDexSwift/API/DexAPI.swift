@@ -110,6 +110,26 @@ public class DexAPI {
         return try await client.request(method: "GET", path: "/api/v6/dex/aggregator/swap-instruction", params: paramsDict)
     }
     
+    public func getSolanaSwapInstructionFromLocal(
+           bundle: Bundle? = nil,
+           filename: String = "swap-instruction"
+       ) throws -> SolanaSwapInstructionData {
+           let resourceBundle = bundle ?? Bundle.module
+           guard let url = resourceBundle.url(forResource: filename, withExtension: "json") else {
+               throw NSError(domain: "DexAPI", code: 404, userInfo: [NSLocalizedDescriptionKey: "File \(filename).json not found in bundle"])
+           }
+           let data = try Data(contentsOf: url)
+           struct APIResponseWrapper: Codable {
+               let code: String
+               let msg: String
+               let data: SolanaSwapInstructionData
+           }
+           let decoder = JSONDecoder()
+           let response = try decoder.decode(APIResponseWrapper.self, from: data)
+           
+           return response.data
+       }
+    
     // MARK: - Swap Execution
     
     public func executeSwap(params: SwapParams) async throws -> SwapResult {
@@ -134,6 +154,16 @@ public class DexAPI {
             throw DexAPIError.emptyInstructionData
         }
         
+        let networkConfig = try getNetworkConfig(chainIndex: chainIndex)
+        let executor = SolanaInstructionExecutor(config: config, networkConfig: networkConfig)
+        return try await executor.executeInstructions(instrData: instructionData)
+    }
+    
+    public func executeSolanaSwapInstructionsLocall(params: SwapParams) async throws -> SwapResult {
+        guard let chainIndex = params.chainIndex else {
+            throw DexAPIError.missingChainIndex
+        }
+        let instructionData = try getSolanaSwapInstructionFromLocal()
         let networkConfig = try getNetworkConfig(chainIndex: chainIndex)
         let executor = SolanaInstructionExecutor(config: config, networkConfig: networkConfig)
         return try await executor.executeInstructions(instrData: instructionData)
