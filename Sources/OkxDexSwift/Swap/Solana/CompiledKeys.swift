@@ -119,7 +119,7 @@ public struct CompiledKeys {
         })
         return (header, staticAccountKeys)
     }
-
+    // 排序去重
     static func compile(instructions: [SolanaMessageInstruction], payer: SolanaPublicKey) -> Self {
             // 关键修改5：OrderedDictionary初始化适配
             var keyMetaMap: KeyMetaMap = OrderedDictionary()

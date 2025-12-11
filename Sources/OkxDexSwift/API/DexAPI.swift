@@ -95,7 +95,7 @@ public class DexAPI {
     
     public func getSwapData(params: SwapParams) async throws -> SwapResponseData {
         // Validate slippage parameters
-        try validateSlippageParams(params)
+//        try validateSlippageParams(params)
         let paramsDict = try params.toDictionary()
         return try await client.request(method: "GET", path: "/api/v6/dex/aggregator/swap", params: paramsDict)
     }
@@ -159,7 +159,7 @@ public class DexAPI {
         return try await executor.executeInstructions(instrData: instructionData)
     }
     
-    public func executeSolanaSwapInstructionsLocall(params: SwapParams) async throws -> SwapResult {
+    public func executeSolanaSwapInstructionsLocal(params: SwapParams) async throws -> SwapResult {
         guard let chainIndex = params.chainIndex else {
             throw DexAPIError.missingChainIndex
         }
