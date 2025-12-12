@@ -1,4 +1,4 @@
-# OkxDexSwift
+# OkxDexSwift [中文](./README_CN.md)
 
 A Swift library for interacting with OKX DEX aggregator, supporting multi-chain decentralized exchange functionalities.
 
