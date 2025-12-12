@@ -173,6 +173,9 @@ public typealias NetworkConfigs = [String: ChainConfig]
 
 public struct SolanaConfig {
     public let wallet: SolanaWallet?
+    public init(wallet: SolanaWallet?) {
+        self.wallet = wallet
+    }
 }
 
 public struct EVMConfig {
@@ -183,7 +186,10 @@ public struct EVMConfig {
 }
 
 public struct SuiConfig {
-    
+    public let wallet: SuiWallet?
+    public init(wallet: SuiWallet?) {
+        self.wallet = wallet
+    }
 }
 
 public struct OKXConfig {

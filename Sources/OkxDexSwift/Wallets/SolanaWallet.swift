@@ -1,7 +1,6 @@
 import Foundation
 import SolanaSwift
 import Base58Swift
-
 public protocol SolanaWallet: Wallet {
     func signTransaction(_ transaction: SolanaVersionedTransaction) throws -> SolanaSignedVersionedTransaction
     func signMessage(_ message: Data) throws -> Data

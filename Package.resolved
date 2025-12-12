@@ -1,5 +1,5 @@
 {
-  "originHash" : "944c352778fafcb0320f58692e7a5d1af10689e8dd1fabbaf0e723feb7494aba",
+  "originHash" : "1825ee7409087052f17a9d7bc83b4b8e1497a8382dc973e87bdee9a6e7e18695",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "722786f0d4503461657fd9c36a6ef9c85eba33ea",
         "version" : "2.0.1"
+      }
+    },
+    {
+      "identity" : "blake2.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lishuailibertine/Blake2.swift",
+      "state" : {
+        "revision" : "ffcf99a3d7f83d5bf2200720e75fa29040a8b604",
+        "version" : "0.1.3"
       }
     },
     {
@@ -98,6 +107,15 @@
       "state" : {
         "revision" : "c6bfd1af48efcc9a9ad203665db12375ba6b145a",
         "version" : "4.0.8"
+      }
+    },
+    {
+      "identity" : "suiswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lishuailibertine/SuiSwift",
+      "state" : {
+        "revision" : "eb603de176aea4cc77738b85117ed2c20bb4306d",
+        "version" : "1.1.0"
       }
     },
     {

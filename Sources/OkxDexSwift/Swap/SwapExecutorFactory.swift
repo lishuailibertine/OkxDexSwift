@@ -8,6 +8,8 @@ public class SwapExecutorFactory {
         switch chainIndex {
         case "501": // Solana
             return SolanaSwapExecutor(config: config, networkConfig: networkConfig)
+        case "784":
+            return SuiSwapExecutor(config: config, networkConfig: networkConfig)
         case "196", // X Layer
              "1", // Ethereum
              "137", // Polygon
