@@ -1,5 +1,5 @@
 {
-  "originHash" : "1825ee7409087052f17a9d7bc83b4b8e1497a8382dc973e87bdee9a6e7e18695",
+  "originHash" : "4b77fec6e4af3c04103529501682a593a351430f9daffc4d1e53f33f17635be9",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -114,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lishuailibertine/SuiSwift",
       "state" : {
-        "revision" : "eb603de176aea4cc77738b85117ed2c20bb4306d",
-        "version" : "1.1.0"
+        "revision" : "8e31b6181eb595f496d79bbe7320c46868b0a36b",
+        "version" : "1.1.1"
       }
     },
     {
